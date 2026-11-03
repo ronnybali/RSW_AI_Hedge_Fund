@@ -6,6 +6,7 @@ import requests
 import pandas as pd
 import numpy as np
 import yfinance as yf
+import json
 from datetime import datetime, timezone, timedelta
 from free_fund.config import load_config
 from free_fund.orchestrator import CentralizedHedgeFundSystem
@@ -17,24 +18,18 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 def send_telegram(message):
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-        print("Telegram secrets missing!")
-        return
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID: return
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    chunks = [message[i:i+4000] for i in range(0, len(message), 4000)]
-    for chunk in chunks:
-        requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": chunk, "parse_mode": "HTML"}, timeout=15)
+    for i in range(0, len(message), 4000):
+        requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": message[i:i+4000], "parse_mode": "HTML"}, timeout=15)
 
-# FUNGSI BARU UNTUK MERAPIKAN NAMA ASET
 def clean_symbol_name(symbol):
     if symbol == 'GC=F': return 'XAUUSD (Gold)'
-    if symbol.endswith('-USD'): return symbol.replace('-USD', '')
     if symbol.endswith('=X'): return symbol.replace('=X', '')
     return symbol
 
 def atr(df, period=14):
-    high, low, close = df["High"], df["Low"], df["Close"]
-    tr = pd.concat([high - low, (high - close.shift()).abs(), (low - close.shift()).abs()], axis=1).max(axis=1)
+    tr = pd.concat([df["High"] - df["Low"], (df["High"] - df["Close"].shift()).abs(), (df["Low"] - df["Close"].shift()).abs()], axis=1).max(axis=1)
     return float(tr.rolling(period).mean().iloc[-1])
 
 def fisher_transform(df, period=9):
@@ -55,7 +50,6 @@ def analyze_tf(df):
     fish = fisher_transform(df).dropna()
     if len(fish) < 2: return None
     f_now = float(fish.iloc[-1])
-    
     trend = "Bullish" if price > ma50 else "Bearish"
     sig = "BULLISH" if (f_now > 0 and trend == "Bullish") else ("BEARISH" if (f_now < 0 and trend == "Bearish") else "NEUTRAL")
     return {"fisher": f_now, "trend": trend, "signal": sig}
@@ -65,10 +59,8 @@ def get_tech_data(symbol):
         df = yf.download(symbol, period="6mo", interval="1d", progress=False, auto_adjust=True, timeout=5)
         if df is None or df.empty: return None
         if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.get_level_values(0)
-        
         tf = analyze_tf(df)
         if not tf: return None
-        
         price = float(df["Close"].iloc[-1])
         a = atr(df)
         return {"price": price, "atr": a, "signal": tf["signal"]}
@@ -84,12 +76,13 @@ def main():
     decision = system.run_cycle(execute=False)
     weights = decision.target_weights
     
-    # Filter aset yang alokasinya > 2%
-    top_assets = {k: v for k, v in weights.items() if abs(v) >= 0.02}
+    # FILTER: HANYA FOREX & GOLD
+    forex_gold_assets = [k for k in weights.keys() if k.endswith("=X") or k == "GC=F"]
+    top_assets = {k: weights[k] for k in forex_gold_assets if abs(weights[k]) >= 0.02}
     
-    golden_buys, golden_sells = [], []
+    orders = []
+    print(f"Menganalisis {len(top_assets)} aset Forex & Gold...")
     
-    print(f"Menganalisis {len(top_assets)} aset kandidat dengan logika Swing Trader...")
     for symbol, weight in top_assets.items():
         tech = get_tech_data(symbol)
         if not tech: continue
@@ -97,52 +90,41 @@ def main():
         is_long = weight > 0
         price, a, tech_sig = tech["price"], tech["atr"], tech["signal"]
         
-        # LOGIKA FUSION (Penyaringan Keras)
+        # LOGIKA FUSION
         if is_long and tech_sig == "BULLISH":
-            # Sinyal Emas BUY
-            sl, tp = price - 1.5 * a, price + 3.0 * a
-            golden_buys.append({"symbol": symbol, "price": price, "sl": sl, "tp": tp, "weight": weight})
-            
+            orders.append({"symbol": symbol, "type": "BUY MARKET", "price": price, "weight": weight})
         elif not is_long and tech_sig == "BEARISH":
-            # Sinyal Emas SELL
-            sl, tp = price + 1.5 * a, price - 3.0 * a
-            golden_sells.append({"symbol": symbol, "price": price, "sl": sl, "tp": tp, "weight": weight})
+            orders.append({"symbol": symbol, "type": "SELL MARKET", "price": price, "weight": weight})
 
-    # Bangun Pesan Telegram
+    # SIMPAN DAILY BIAS UNTUK VPS
+    daily_bias = {}
+    for o in orders:
+        arah = "BUY" if "BUY" in o['type'] else "SELL"
+        daily_bias[o['symbol']] = arah
+        
+    with open("daily_bias.json", "w") as f:
+        json.dump(daily_bias, f, indent=4)
+    print("✅ File daily_bias.json berhasil disimpan!")
+
+    # BANGUN LAPORAN TELEGRAM
     wita_time = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M WITA")
     msg = "-------------------------------------------\n"
-    msg += "🔥 <b>FUSION HIGH-PROBABILITY REPORT</b>\n"
+    msg += "🔥 <b>FUSION MACRO REPORT (FOREX & GOLD)</b>\n"
     msg += f"<b>{wita_time}</b>\n"
     msg += "-------------------------------------------\n\n"
     
-    if not golden_buys and not golden_sells:
-        msg += "⚠️ <b>TIDAK ADA SINYAL EMAS HARI INI</b>\n"
-        msg += "<i>Hedge Fund dan Swing Trader tidak menemukan titik temu. Pasar sedang tidak sinkron. Tetap Cash.</i>\n"
+    if not orders:
+        msg += "⚠️ <b>TIDAK ADA SINKRONISASI MAKRO-MIKRO</b>\n"
     else:
-        if golden_buys:
-            msg += "🟢 <b>GOLDEN BUY SIGNALS</b>\n"
-            msg += "(Hedge Fund & Teknikal Sepakat NAIK)\n\n"
-            for b in golden_buys:
-                name = clean_symbol_name(b['symbol']) # MENGGUNAKAN FUNGSI BARU
-                msg += f"🚀 <b>{name}</b> [<b>BUY</b>]\n"
-                msg += f"├ Entry: {b['price']:.5g}\n"
-                msg += f"├ SL: {b['sl']:.5g}\n"
-                msg += f"└ TP: {b['tp']:.5g}\n"
-                msg += f"<i>Alokasi Hedge Fund: {abs(b['weight'])*100:.1f}%</i>\n\n"
-                
-        if golden_sells:
-            msg += "🔴 <b>GOLDEN SELL SIGNALS</b>\n"
-            msg += "(Hedge Fund & Teknikal Sepakat TURUN)\n\n"
-            for s in golden_sells:
-                name = clean_symbol_name(s['symbol']) # MENGGUNAKAN FUNGSI BARU
-                msg += f"🩸 <b>{name}</b> [<b>SELL</b>]\n"
-                msg += f"├ Entry: {s['price']:.5g}\n"
-                msg += f"├ SL: {s['sl']:.5g}\n"
-                msg += f"└ TP: {s['tp']:.5g}\n"
-                msg += f"<i>Alokasi Hedge Fund: {abs(s['weight'])*100:.1f}%</i>\n\n"
+        msg += "🎯 <b>ARAHAN HARI INI (VPS STANDBY)</b>\n\n"
+        for o in orders:
+            name = clean_symbol_name(o['symbol'])
+            emoji = "🟢" if "BUY" in o['type'] else "🔴"
+            msg += f"{emoji} <b>{name}</b> | <b>{o['type']}</b>\n"
+            msg += f"<i>(Bobot AI: {abs(o['weight'])*100:.1f}%)</i>\n\n"
                 
     msg += "-------------------------------------------\n"
-    msg += "<i>Sistem ini hanya menampilkan aset yang searah antara Makro & Mikro.</i>"
+    msg += "<i>File daily_bias.json telah diperbarui untuk VPS.</i>"
     
     print(msg)
     send_telegram(msg)
