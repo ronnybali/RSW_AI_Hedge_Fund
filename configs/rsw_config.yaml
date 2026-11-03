@@ -1,0 +1,29 @@
+system:
+  output_dir: outputs
+
+portfolio:
+  symbols: [SPY, QQQ, IWM, TLT, GLD, GC=F, BTC-USD, ETH-USD, AAVE-USD, EURUSD=X, GBPUSD=X, USDJPY=X, AUDUSD=X, USDCAD=X, USDCHF=X, NZDUSD=X, EURGBP=X, EURJPY=X, GBPJPY=X, XAUUSD=X]
+  start_date: '2022-01-01'
+  end_date: null
+  lookback_days: 126
+  max_weight: 0.30
+  gross_limit: 1.00
+  rebalance_every_n_days: 21
+
+strategies:
+  weights:
+    trend_following: 0.40
+    mean_reversion: 0.20
+    volatility_carry: 0.10
+    regime_switching: 0.15
+    relative_strength_rotation: 0.15
+
+llm_router:
+  primary_provider: gemini
+  fallback_chain: [gemini, ollama]
+  timeout_seconds: 15
+  max_retries: 2
+
+execution:
+  broker: stub
+  market_mode: us
