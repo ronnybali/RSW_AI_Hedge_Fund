@@ -10,12 +10,14 @@ def send_telegram(message):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
-        print("Telegram secrets not found.")
+        print("ERROR: Telegram secrets not found in environment!")
         return
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
+    # Ubah parse_mode ke HTML
+    payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
     try:
-        requests.post(url, json=payload, timeout=10)
+        response = requests.post(url, json=payload, timeout=10)
+        print(f"Telegram API Response: {response.status_code} - {response.text}")
     except Exception as e:
         print(f"Failed to send Telegram: {e}")
 
@@ -25,42 +27,42 @@ def main():
     system = CentralizedHedgeFundSystem(cfg)
     
     print("Menjalankan agen AI (1 siklus)...")
-    # execute=False artinya HANYA menghitung, TIDAK order ke broker
     decision = system.run_cycle(execute=False) 
     
-    # Waktu WITA (UTC+8)
     wita_time = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S WITA")
     
-    # Susun pesan
+    # Gunakan tag HTML untuk format
     pesan = "---------------------------------\n"
-    pesan += "🤖 *RSW AI HEDGE FUND REPORT*\n"
+    pesan += "🤖 <b>RSW AI HEDGE FUND REPORT</b>\n"
     pesan += "---------------------------------\n"
     pesan += f"🕒 {wita_time}\n\n"
-    pesan += "*Alokasi Portofolio:*\n"
+    pesan += "<b>Alokasi Portofolio:</b>\n"
     
-    # Urutkan dari bobot terbesar
     sorted_weights = sorted(decision.target_weights.items(), key=lambda x: abs(x[1]), reverse=True)
     
     ada_aset = False
     for symbol, weight in sorted_weights:
-        if abs(weight) > 0.01: # Hanya tampilkan jika bobot > 1%
+        if abs(weight) > 0.01: 
             emoji = "🟢" if weight > 0 else "🔴"
-            pesan += f"{emoji} `{symbol}`: {weight*100:.1f}%\n"
+            pesan += f"{emoji} <code>{symbol}</code>: {weight*100:.1f}%\n"
             ada_aset = True
             
     if not ada_aset:
-        pesan += "_Semua aset dalam status Cash (0%)_\n"
+        pesan += "<i>Semua aset dalam status Cash (0%)</i>\n"
         
-    pesan += "\n*Status Risiko:*\n"
+    pesan += "\n<b>Status Risiko:</b>\n"
     if decision.risk_flags:
         pesan += f"⚠️ {', '.join(decision.risk_flags)}\n"
     else:
         pesan += "✅ Normal\n"
         
     pesan += "---------------------------------\n"
-    pesan += "_Laporan dari AI Native Hedge Fund_"
+    pesan += "<i>Laporan dari AI Native Hedge Fund</i>"
     
+    print("\n--- ISI PESAN YANG AKAN DIKIRIM ---")
     print(pesan)
+    print("-----------------------------------\n")
+    
     send_telegram(pesan)
     print("Selesai!")
 
