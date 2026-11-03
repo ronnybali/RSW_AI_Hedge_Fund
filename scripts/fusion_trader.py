@@ -25,6 +25,13 @@ def send_telegram(message):
     for chunk in chunks:
         requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": chunk, "parse_mode": "HTML"}, timeout=15)
 
+# FUNGSI BARU UNTUK MERAPIKAN NAMA ASET
+def clean_symbol_name(symbol):
+    if symbol == 'GC=F': return 'XAUUSD (Gold)'
+    if symbol.endswith('-USD'): return symbol.replace('-USD', '')
+    if symbol.endswith('=X'): return symbol.replace('=X', '')
+    return symbol
+
 def atr(df, period=14):
     high, low, close = df["High"], df["Low"], df["Close"]
     tr = pd.concat([high - low, (high - close.shift()).abs(), (low - close.shift()).abs()], axis=1).max(axis=1)
@@ -116,7 +123,7 @@ def main():
             msg += "🟢 <b>GOLDEN BUY SIGNALS</b>\n"
             msg += "(Hedge Fund & Teknikal Sepakat NAIK)\n\n"
             for b in golden_buys:
-                name = b['symbol'].replace('-USD', '').replace('=X', '').replace('=F', '')
+                name = clean_symbol_name(b['symbol']) # MENGGUNAKAN FUNGSI BARU
                 msg += f"🚀 <b>{name}</b> [<b>BUY</b>]\n"
                 msg += f"├ Entry: {b['price']:.5g}\n"
                 msg += f"├ SL: {b['sl']:.5g}\n"
@@ -127,7 +134,7 @@ def main():
             msg += "🔴 <b>GOLDEN SELL SIGNALS</b>\n"
             msg += "(Hedge Fund & Teknikal Sepakat TURUN)\n\n"
             for s in golden_sells:
-                name = s['symbol'].replace('-USD', '').replace('=X', '').replace('=F', '')
+                name = clean_symbol_name(s['symbol']) # MENGGUNAKAN FUNGSI BARU
                 msg += f"🩸 <b>{name}</b> [<b>SELL</b>]\n"
                 msg += f"├ Entry: {s['price']:.5g}\n"
                 msg += f"├ SL: {s['sl']:.5g}\n"
