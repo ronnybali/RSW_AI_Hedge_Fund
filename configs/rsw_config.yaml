@@ -58,7 +58,7 @@ benchmark:
   alpha_weight: 0.20
 
 regime_controls:
-  defensive_assets: [TLT, GLD]
+  defensive_assets: [GC=F]
   defensive_tilt: 0.06
   gross_limit_by_regime:
     trend: 1.00
