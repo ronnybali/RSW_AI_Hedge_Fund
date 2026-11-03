@@ -31,13 +31,12 @@ def clean_ticker_name(symbol):
 def classify_symbol(symbol):
     if symbol.endswith("-USD"):
         return "CRYPTO"
-    if symbol.endswith("=X") or symbol in ["GC=F", "GLD"]:
+    if symbol.endswith("=X") or symbol == "GC=F":
         return "FOREX & GOLD"
     return "ETF"
 
 def get_tech_data(symbol):
     try:
-        # Unduh data 6 bulan untuk perhitungan MA50 dan Fisher
         df = yf.download(symbol, period="6mo", interval="1d", progress=False)
         if df.empty:
             return None, None, None, None
@@ -64,7 +63,6 @@ def get_tech_data(symbol):
         max_high = high.rolling(9).max()
         val = 2 * ((hl2 - min_low) / (max_high - min_low) - 0.5)
         val = val.ewm(span=5, adjust=False).mean()
-        # Cegah log(0) error
         val = val.clip(-0.999, 0.999)
         fisher = 0.5 * np.log((1 + val) / (1 - val))
         current_fisher = float(fisher.iloc[-1])
@@ -83,9 +81,9 @@ def calculate_confidence(weight, is_long, price, ma50, fisher):
     elif weight_abs >= 0.05: conf += 15
     else: conf += 5
     
-    # 2. Konfluensi Tren & Fisher
+    # 2. Konfluensi Tren & Fisher (Bug fixed)
     if is_long:
-        if current_fisher := fisher > 0: conf += 10
+        if fisher > 0: conf += 10
         if price > ma50: conf += 10
     else:
         if fisher < 0: conf += 10
@@ -111,7 +109,8 @@ def main():
     
     groups = {"CRYPTO": [], "FOREX & GOLD": [], "ETF": []}
     for symbol, weight in decision.target_weights.items():
-        if abs(weight) >= 0.02: 
+        # Kita tampilkan semua pair, asalkan ada di daftar aset
+        if abs(weight) >= 0.0: 
             group_name = classify_symbol(symbol)
             groups[group_name].append((symbol, weight))
             
@@ -123,21 +122,28 @@ def main():
     for group_name, assets in groups.items():
         if not assets: continue
         
+        # Urutkan dari bobot terkuat ke terlemah (mutlak)
         assets.sort(key=lambda x: abs(x[1]), reverse=True)
-        top_assets = assets[:3] 
         
         pesan += "-------------------------\n"
         pesan += f"{group_name}\n"
         pesan += "-------------------------\n\n"
         
-        for symbol, weight in top_assets:
+        for symbol, weight in assets:
             name = clean_ticker_name(symbol)
+            
+            # Jika bobot 0, kita anggap Netral/Tidak ada sinyal
+            if abs(weight) < 0.01:
+                pesan += f"⚪ <b>{name}</b> [NETRAL - 0.0%]\n\n"
+                continue
+                
             is_long = weight > 0
             price, atr, ma50, fisher = get_tech_data(symbol)
             
             if price is None or atr is None:
                 emoji = "🟢" if is_long else "🔴"
-                pesan += f"{emoji} <b>{name}</b> [{abs(weight)*100:.1f}%]\n"
+                aksi = "BUY" if is_long else "SELL"
+                pesan += f"{emoji} <b>{name}</b> [{aksi} - {abs(weight)*100:.1f}%]\n"
                 pesan += "(Gagal mengambil data teknikal)\n\n"
                 continue
                 
