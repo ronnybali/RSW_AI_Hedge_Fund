@@ -15,13 +15,18 @@ def send_telegram(message):
         print("ERROR: Telegram secrets not found!")
         return
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    # Menggunakan HTML untuk format Bold
-    payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
-    try:
-        response = requests.post(url, json=payload, timeout=10)
-        print(f"Telegram API Response: {response.status_code}")
-    except Exception as e:
-        print(f"Failed to send Telegram: {e}")
+    
+    # Telegram membatasi 4096 karakter per pesan. 
+    # Kita potong per 4000 karakter agar format tidak terputus di tengah jalan.
+    chunks = [message[i:i+4000] for i in range(0, len(message), 4000)]
+    
+    for chunk in chunks:
+        payload = {"chat_id": chat_id, "text": chunk, "parse_mode": "HTML"}
+        try:
+            response = requests.post(url, json=payload, timeout=10)
+            print(f"Telegram API Response: {response.status_code}")
+        except Exception as e:
+            print(f"Failed to send Telegram: {e}")
 
 def clean_ticker_name(symbol):
     if symbol == "GC=F": return "XAUUSD (Gold)"
@@ -108,7 +113,6 @@ def main():
             group_name = classify_symbol(symbol)
             groups[group_name].append((symbol, weight))
             
-    # 1 & 2: Header Utama di-Bold
     pesan = "-------------------------------------------\n"
     pesan += "<b>RSW AI HEDGE FUND REPORT</b>\n"
     pesan += f"<b>{wita_time}</b>\n"
@@ -119,7 +123,6 @@ def main():
         
         assets.sort(key=lambda x: abs(x[1]), reverse=True)
         
-        # 3, 4, 5: Nama Kategori di-Bold
         pesan += "-------------------------\n"
         pesan += f"<b>{group_name}</b>\n"
         pesan += "-------------------------\n\n"
@@ -137,8 +140,7 @@ def main():
             if price is None or atr is None:
                 emoji = "🟢" if is_long else "🔴"
                 aksi = "BUY" if is_long else "SELL"
-                # 6: Menghapus persentase dari dalam kurung siku
-                pesan += f"{emoji} <b>{name}</b> [{aksi}]\n"
+                pesan += f"{emoji} <b>{name}</b> [<b>{aksi}</b>]\n"
                 pesan += "(Gagal mengambil data teknikal)\n\n"
                 continue
                 
@@ -155,11 +157,11 @@ def main():
                 
             conf, status = calculate_confidence(weight, is_long, price, ma50, fisher)
             
-            # 6: Menghapus persentase dari dalam kurung siku
-            pesan += f"{emoji} <b>{name}</b> [{aksi}]\n"
-            pesan += f"├ Entry: <code>{price:.4f}</code>\n"
-            pesan += f"├ SL: <code>{sl:.4f}</code>\n"
-            pesan += f"└ TP: <code>{tp:.4f}</code>\n"
+            # Memastikan tag <b> menempel sempurna pada nama aset dan aksi
+            pesan += f"{emoji} <b>{name}</b> [<b>{aksi}</b>]\n"
+            pesan += f"├ Entry: {price:.4f}\n"
+            pesan += f"├ SL: {sl:.4f}\n"
+            pesan += f"└ TP: {tp:.4f}\n"
             pesan += f"Confidence: {conf}% ({status})\n\n"
             
     print(pesan)
