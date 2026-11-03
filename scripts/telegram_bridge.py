@@ -15,6 +15,7 @@ def send_telegram(message):
         print("ERROR: Telegram secrets not found!")
         return
     url = f"https://api.telegram.org/bot{token}/sendMessage"
+    # Menggunakan HTML untuk format Bold
     payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
     try:
         response = requests.post(url, json=payload, timeout=10)
@@ -50,14 +51,11 @@ def get_tech_data(symbol):
         
         current_price = float(close.iloc[-1])
         
-        # Hitung ATR 14
         tr = pd.concat([high - low, abs(high - close.shift()), abs(low - close.shift())], axis=1).max(axis=1)
         atr = float(tr.rolling(14).mean().iloc[-1])
         
-        # Hitung MA50
         ma50 = float(close.rolling(50).mean().iloc[-1])
         
-        # Hitung Fisher Transform (9)
         hl2 = (high + low) / 2
         min_low = low.rolling(9).min()
         max_high = high.rolling(9).max()
@@ -73,15 +71,12 @@ def get_tech_data(symbol):
         return None, None, None, None
 
 def calculate_confidence(weight, is_long, price, ma50, fisher):
-    conf = 50 # Base score
-    
-    # 1. Bobot Alokasi
+    conf = 50 
     weight_abs = abs(weight)
     if weight_abs >= 0.10: conf += 25
     elif weight_abs >= 0.05: conf += 15
     else: conf += 5
     
-    # 2. Konfluensi Tren & Fisher (Bug fixed)
     if is_long:
         if fisher > 0: conf += 10
         if price > ma50: conf += 10
@@ -89,7 +84,7 @@ def calculate_confidence(weight, is_long, price, ma50, fisher):
         if fisher < 0: conf += 10
         if price < ma50: conf += 10
         
-    conf = min(99, conf) # Maksimal 99%
+    conf = min(99, conf) 
     
     if conf >= 75: status = "KUAT"
     elif conf >= 60: status = "SEDANG"
@@ -109,32 +104,31 @@ def main():
     
     groups = {"CRYPTO": [], "FOREX & GOLD": [], "ETF": []}
     for symbol, weight in decision.target_weights.items():
-        # Kita tampilkan semua pair, asalkan ada di daftar aset
         if abs(weight) >= 0.0: 
             group_name = classify_symbol(symbol)
             groups[group_name].append((symbol, weight))
             
+    # 1 & 2: Header Utama di-Bold
     pesan = "-------------------------------------------\n"
-    pesan += "RSW AI HEDGE FUND REPORT\n"
-    pesan += f"{wita_time}\n"
+    pesan += "<b>RSW AI HEDGE FUND REPORT</b>\n"
+    pesan += f"<b>{wita_time}</b>\n"
     pesan += "-------------------------------------------\n\n"
     
     for group_name, assets in groups.items():
         if not assets: continue
         
-        # Urutkan dari bobot terkuat ke terlemah (mutlak)
         assets.sort(key=lambda x: abs(x[1]), reverse=True)
         
+        # 3, 4, 5: Nama Kategori di-Bold
         pesan += "-------------------------\n"
-        pesan += f"{group_name}\n"
+        pesan += f"<b>{group_name}</b>\n"
         pesan += "-------------------------\n\n"
         
         for symbol, weight in assets:
             name = clean_ticker_name(symbol)
             
-            # Jika bobot 0, kita anggap Netral/Tidak ada sinyal
             if abs(weight) < 0.01:
-                pesan += f"⚪ <b>{name}</b> [NETRAL - 0.0%]\n\n"
+                pesan += f"⚪ <b>{name}</b> [NETRAL]\n\n"
                 continue
                 
             is_long = weight > 0
@@ -143,7 +137,8 @@ def main():
             if price is None or atr is None:
                 emoji = "🟢" if is_long else "🔴"
                 aksi = "BUY" if is_long else "SELL"
-                pesan += f"{emoji} <b>{name}</b> [{aksi} - {abs(weight)*100:.1f}%]\n"
+                # 6: Menghapus persentase dari dalam kurung siku
+                pesan += f"{emoji} <b>{name}</b> [{aksi}]\n"
                 pesan += "(Gagal mengambil data teknikal)\n\n"
                 continue
                 
@@ -160,7 +155,8 @@ def main():
                 
             conf, status = calculate_confidence(weight, is_long, price, ma50, fisher)
             
-            pesan += f"{emoji} <b>{name}</b> [{aksi} - {abs(weight)*100:.1f}%]\n"
+            # 6: Menghapus persentase dari dalam kurung siku
+            pesan += f"{emoji} <b>{name}</b> [{aksi}]\n"
             pesan += f"├ Entry: <code>{price:.4f}</code>\n"
             pesan += f"├ SL: <code>{sl:.4f}</code>\n"
             pesan += f"└ TP: <code>{tp:.4f}</code>\n"
