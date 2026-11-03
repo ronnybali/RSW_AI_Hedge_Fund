@@ -10,20 +10,84 @@ portfolio:
   gross_limit: 1.00
   rebalance_every_n_days: 21
 
+agent:
+  enable_llm_research: false # Dimatikan agar tidak mencari Ollama lokal
+  max_headlines: 8
+
 strategies:
   weights:
-    trend_following: 0.40
-    mean_reversion: 0.20
+    trend_following: 0.24
+    mean_reversion: 0.12
     volatility_carry: 0.10
-    regime_switching: 0.15
-    relative_strength_rotation: 0.15
+    regime_switching: 0.16
+    event_driven: 0.08
+    relative_strength_rotation: 0.20
+    dual_momentum_gate: 0.15
+
+risk_hard_limits:
+  max_weight: 0.30
+  gross_limit: 1.00
+  net_limit: 0.60
+  max_annual_vol: 0.20
+  drawdown_brake: 0.15
+  brake_scale: 0.50
+  var_limit_95: 0.03
+  es_limit_95: 0.04
+  concentration_top1_limit: 0.30
+  concentration_top5_limit: 0.80
+  beta_neutral_band: 0.99
+  jump_threshold: 0.06
+  max_leverage_by_regime:
+    trend: 3.0
+    meanrev: 2.5
+    stress: 1.0
+
+execution_controls:
+  min_weight_change_to_trade: 0.02
+  max_turnover_per_cycle: 0.40
+  rebalance_cooldown_cycles: 1
+
+fund_manager:
+  turnover_penalty: 0.70
+  risk_penalty_scale: 0.30
+  top_k: 8
+
+benchmark:
+  mode: symbol
+  symbol: SPY
+  alpha_weight: 0.20
+
+regime_controls:
+  defensive_assets: [TLT, GLD]
+  defensive_tilt: 0.06
+  gross_limit_by_regime:
+    trend: 1.00
+    meanrev: 0.90
+    stress: 0.60
+
+research_council:
+  enabled: true
+  blend_weight: 0.10
+  max_rounds: 1
+  request_timeout_sec: 90
 
 llm_router:
   primary_provider: gemini
-  fallback_chain: [gemini, ollama]
+  fallback_chain: [gemini]
   timeout_seconds: 15
   max_retries: 2
 
 execution:
   broker: stub
   market_mode: us
+
+data_quality:
+  max_nan_ratio: 0.01
+  max_abs_daily_return: 0.30
+  max_zero_price_ratio: 0.0
+  max_staleness_minutes: 15
+
+resilience:
+  failure_threshold: 3
+  recovery_timeout_sec: 120
+  degraded_mode_enabled: true
