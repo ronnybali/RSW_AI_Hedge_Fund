@@ -2,7 +2,7 @@ system:
   output_dir: outputs
 
 portfolio:
-  symbols: [SPY, QQQ, IWM, TLT, GLD, GC=F, BTC-USD, ETH-USD, AAVE-USD, EURUSD=X, GBPUSD=X, USDJPY=X, AUDUSD=X, USDCAD=X, USDCHF=X, NZDUSD=X, EURGBP=X, EURJPY=X, GBPJPY=X, XAUUSD=X]
+  symbols: [SPY, QQQ, IWM, TLT, GLD, GC=F, BTC-USD, ETH-USD, AAVE-USD, EURUSD=X, GBPUSD=X, USDJPY=X, AUDUSD=X, USDCAD=X, USDCHF=X, NZDUSD=X, EURGBP=X, EURJPY=X, GBPJPY=X]
   start_date: '2022-01-01'
   end_date: null
   lookback_days: 126
