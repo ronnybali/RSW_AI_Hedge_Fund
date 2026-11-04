@@ -1,0 +1,35 @@
+name: RSW Master Report
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync
+      
+      - name: Run Master Report
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID_FOREX: ${{ secrets.TELEGRAM_CHAT_ID_FOREX }}
+          TELEGRAM_CHAT_ID_ETF: ${{ secrets.TELEGRAM_CHAT_ID_ETF }}
+          TELEGRAM_CHAT_ID_CRYPTO: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          LLM_ROUTER_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: uv run python scripts/rsw_master_report.py
+
+      - name: Commit Daily Bias
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add daily_bias.json
+          git commit -m "Update AI Daily Bias [skip ci]" || echo "No changes"
+          git push
