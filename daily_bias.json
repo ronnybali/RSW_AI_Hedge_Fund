@@ -1,9 +1,22 @@
 {
+    "AAVE-USD": "BUY",
     "AUDNZD=X": "BUY",
+    "BTC-USD": "BUY",
+    "CADCHF=X": "BUY",
+    "CHFJPY=X": "SELL",
+    "ETH-USD": "BUY",
+    "EURAUD=X": "SELL",
     "EURCAD=X": "SELL",
     "EURGBP=X": "SELL",
+    "EURJPY=X": "SELL",
+    "EURUSD=X": "SELL",
+    "GBPCHF=X": "BUY",
     "GBPNZD=X": "BUY",
     "GC=F": "SELL",
+    "NEAR-USD": "BUY",
     "NZDCAD=X": "SELL",
-    "NZDJPY=X": "SELL"
+    "NZDJPY=X": "SELL",
+    "SCHD": "BUY",
+    "USDCHF=X": "BUY",
+    "VXUS": "SELL"
 }
