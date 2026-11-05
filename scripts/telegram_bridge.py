@@ -10,7 +10,7 @@ from free_fund.orchestrator import CentralizedHedgeFundSystem
 
 def send_telegram(message):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID_VPS")
     if not token or not chat_id:
         print("ERROR: Telegram secrets not found!")
         return
