@@ -18,7 +18,7 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID_VPS = os.getenv("TELEGRAM_CHAT_ID_VPS")
 
 def send_telegram(message):
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID: return
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID_VPS: return
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     for i in range(0, len(message), 4000):
         requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID_VPS, "text": message[i:i+4000], "parse_mode": "HTML"}, timeout=15)
