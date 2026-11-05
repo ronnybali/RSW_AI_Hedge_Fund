@@ -25,7 +25,7 @@ jobs:
       - name: Run AI Agent and Send Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID_VPS: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_CHAT_ID_VPS: ${{ secrets.TELEGRAM_CHAT_ID_VPS }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           LLM_ROUTER_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Siasat agar sistem membaca API Key Gemini
         run: |
