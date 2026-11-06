@@ -14,7 +14,7 @@
     "NZDJPY=X": "SELL",
     "NZDUSD=X": "SELL",
     "SCHD": "BUY",
-    "SOXX": "BUY",
+    "USDCAD=X": "BUY",
     "USDCHF=X": "BUY",
     "VXUS": "SELL"
 }
