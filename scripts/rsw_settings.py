@@ -27,7 +27,7 @@ USE_HYBRID_SL = True   # True = Bandingkan ATR & Swing High/Low. False = Murni A
 # 4. MANAJEMEN RISIKO & BATAS
 RISK_PERCENT = 1.5           # Risiko per trade (% dari Balance)
 MAX_DAILY_LOSS_PCT = 15.0    # Circuit Breaker (Stop trading jika rugi harian %)
-MAX_SPREAD_POINTS = 50       # Batas maksimal spread (dalam points)
+MAX_SPREAD_POINTS = 175       # Batas maksimal spread (dalam points)
 CLOSE_HALF_TARGET = 0.5      # Tutup setengah posisi saat profit mencapai 50% dari TP
 
 # 5. PENGATURAN SESI (Waktu WITA / UTC+8)
