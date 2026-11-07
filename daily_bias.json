@@ -3,11 +3,11 @@
     "AUDCAD=X": "SELL",
     "AUDNZD=X": "BUY",
     "BTC-USD": "BUY",
-    "CADCHF=X": "BUY",
     "ETH-USD": "BUY",
     "EURCAD=X": "SELL",
     "EURGBP=X": "SELL",
     "EURJPY=X": "SELL",
+    "EURNZD=X": "BUY",
     "EURUSD=X": "SELL",
     "GBPCHF=X": "BUY",
     "GBPNZD=X": "BUY",
@@ -17,6 +17,7 @@
     "NZDUSD=X": "SELL",
     "SCHD": "BUY",
     "SOL-USD": "BUY",
+    "USDCAD=X": "BUY",
     "USDCHF=X": "BUY",
     "VXUS": "SELL"
 }
