@@ -6,17 +6,15 @@
     "EURCAD=X": "SELL",
     "EURGBP=X": "SELL",
     "EURJPY=X": "SELL",
+    "EURNZD=X": "BUY",
     "EURUSD=X": "SELL",
-    "GBPCAD=X": "BUY",
     "GBPCHF=X": "BUY",
     "GBPNZD=X": "BUY",
     "NEAR-USD": "BUY",
     "NZDCAD=X": "SELL",
     "NZDJPY=X": "SELL",
     "NZDUSD=X": "SELL",
+    "QQQM": "SELL",
     "SCHD": "BUY",
-    "SOL-USD": "BUY",
-    "USDCAD=X": "BUY",
-    "USDCHF=X": "BUY",
-    "VXUS": "SELL"
+    "USDCHF=X": "BUY"
 }
