@@ -1,13 +1,11 @@
 {
     "AAVE-USD": "BUY",
-    "AUDCAD=X": "SELL",
     "AUDNZD=X": "BUY",
     "BTC-USD": "BUY",
     "ETH-USD": "BUY",
     "EURCAD=X": "SELL",
     "EURGBP=X": "SELL",
     "EURJPY=X": "SELL",
-    "EURNZD=X": "BUY",
     "EURUSD=X": "SELL",
     "GBPCHF=X": "BUY",
     "GBPNZD=X": "BUY",
@@ -16,6 +14,7 @@
     "NZDJPY=X": "SELL",
     "NZDUSD=X": "SELL",
     "SCHD": "BUY",
+    "SOL-USD": "BUY",
     "USDCAD=X": "BUY",
     "USDCHF=X": "BUY",
     "VXUS": "SELL"
