@@ -17,6 +17,7 @@
     "NZDUSD=X": "SELL",
     "QQQM": "SELL",
     "SCHD": "BUY",
+    "SOXX": "SELL",
     "USDCAD=X": "BUY",
     "USDCHF=X": "BUY"
 }
