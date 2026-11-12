@@ -18,5 +18,7 @@
     "SCHD": "BUY",
     "SOXX": "SELL",
     "USDCAD=X": "BUY",
-    "USDCHF=X": "BUY"
+    "USDCHF=X": "BUY",
+    "USDJPY=X": "BUY",
+    "VYM": "BUY"
 }
