@@ -1,8 +1,7 @@
 {
     "AAVE-USD": "BUY",
-    "AUDJPY=X": "SELL",
+    "AUDNZD=X": "BUY",
     "AUDUSD=X": "SELL",
-    "BTC-USD": "BUY",
     "CADCHF=X": "BUY",
     "EURCAD=X": "SELL",
     "EURGBP=X": "SELL",
