@@ -1,9 +1,8 @@
 {
     "AAVE-USD": "BUY",
+    "AUDCAD=X": "SELL",
     "AUDJPY=X": "SELL",
-    "AUDNZD=X": "BUY",
     "AUDUSD=X": "SELL",
-    "CADCHF=X": "BUY",
     "EURCAD=X": "SELL",
     "EURGBP=X": "SELL",
     "EURJPY=X": "SELL",
@@ -15,9 +14,8 @@
     "NZDJPY=X": "SELL",
     "NZDUSD=X": "SELL",
     "SCHD": "BUY",
-    "SOXX": "SELL",
+    "SOL-USD": "BUY",
     "USDCAD=X": "BUY",
     "USDCHF=X": "BUY",
-    "USDJPY=X": "BUY",
     "VYM": "BUY"
 }
