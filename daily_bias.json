@@ -1,5 +1,6 @@
 {
     "AAVE-USD": "BUY",
+    "AUDCAD=X": "SELL",
     "AUDJPY=X": "SELL",
     "AUDUSD=X": "SELL",
     "CADCHF=X": "BUY",
@@ -8,9 +9,9 @@
     "EURJPY=X": "SELL",
     "EURNZD=X": "BUY",
     "EURUSD=X": "SELL",
-    "GBPCAD=X": "BUY",
     "GBPCHF=X": "BUY",
     "GBPNZD=X": "BUY",
+    "GBPUSD=X": "SELL",
     "NEAR-USD": "BUY",
     "NZDCAD=X": "SELL",
     "NZDJPY=X": "SELL",
